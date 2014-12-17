@@ -114,6 +114,15 @@ for i = 2:frames
     h = get(handles.axes1, 'Children');
     set(h, 'CData', frame);
     
+    change = processFrame(frame);
+    
+    if (change == 1)
+%         set(handles.listbox1, 'String', [get(handles.listbox1, 'String'); {'PLATE'}]);
+        set(handles.title, 'ForegroundColor', [0 1 0]);
+    else
+        set(handles.title, 'ForegroundColor', [1 0 0]);
+    end;
+    
     % Update time and frame in GUI
     set(handles.frame, 'String', ['Frame: ' num2str(i)]);
     set(handles.time, 'String', ['Time: ' num2str(floor(toc))]);
