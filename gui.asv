@@ -83,6 +83,7 @@ function import_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 [file path] = uigetfile('*.avi','Import the video');
 handles.vid = VideoReader([path file]);
+guidata(hObject, handles);
 
 
 % --- Executes on button press in start.
@@ -90,6 +91,48 @@ function start_Callback(hObject, eventdata, handles)
 % hObject    handle to start (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+% Set focus to axes1
+axes(handles.axes1);
+
+% Get the number of frames and the rate
+frames = handles.vid.numberOfFrames
+rate = handles.vid.FrameRate;
+
+% Read the first frame and set the image
+image(read(handles.vid, 1));
+
+% Get start time in ms (to play at 30 fps)
+tic;
+
+for i = 2:frames
+    axes(handles.axes1);
+    % Store when this cycle starts
+    time = toc;
+    
+    % Read frame and update in GUI
+    frame = read(handles.vid, i);
+    h = get(handles.axes1, 'Children');
+    
+    axes(handles.axes1);
+    set(h, 'CData', frame);
+    
+    
+    
+    axes(handles.axes2);
+    set(h, 'CData', frame);
+    % Update time and frame in GUI
+    set(handles.frame, 'String', ['Frame: ' num2str(i)]);
+    set(handles.time, 'String', ['Time: ' num2str(floor(toc))]);
+    
+    % Calculate time and pause to play at desired frame rate
+    delta = toc - time;
+    if delta < 1/rate
+        % Keep looping until time is right (because pause() was very
+        % inaccurate)
+        while (toc < time + 1/rate) 
+        end;
+    end;
+end;
 
 
 % --- Executes on selection change in listbox1.

@@ -4,28 +4,22 @@ frameRed = frame(:, :, 1);
 frameGreen = frame(:, :, 2);
 frameBlue = frame(:, :, 3);
 
-% Treshholding between two lines
-temp = (frameRed < (1.05*frameGreen + 100)) & (frameRed > (0.95*frameGreen + 20));
-% Tresholding minimum and maximum values
-temp = temp & frameRed < 210 & frameRed > 60 & frameGreen < 170 & frameGreen > 40;
-% Blue component should be low
-temp = temp & frameBlue < 120;
+% Treshholding red and green
+temp = (frameRed < (1.37*frameGreen + 55)) & (frameRed > (frameGreen + -30));
+% Treshholding red and blue
+temp = temp & frameRed > frameBlue - 20;
+% Treshholding blue and green
+temp = temp & frameGreen > 0.95*frameBlue & frameGreen < 3.75*frameBlue;
 
-dipim = readim(temp);
-lab = label(dipim);
+% Tresholding minimum lines
+temp = temp & frameRed > -2*frameGreen + 100 & frameRed < 5*frameBlue + 150;
+% Thresholding minimum values
+temp = temp & frameRed > 15 & frameGreen > 15 & frameBlue > 15;
+% Tresholding maximums
+temp = temp & frameGreen < 215;
 
-largestObjIdx = 1;
-for i=1:max(lab);
-    obj = lab == i;
-    if sum(obj/i) > sum((lab == largestObjIdx)/largestObjIdx);
-        largestObjIdx = i;
-    end;
-end;
-
-
-
-% Bepaal grootste object uit Temp
-% Bepaal hoe zwart de tekens zijn
+temp = temp & frameBlue < frameRed & frameBlue < frameGreen;
+temp = temp & frameRed < (frameGreen + frameBlue)
 
 imagesc(temp);
 
