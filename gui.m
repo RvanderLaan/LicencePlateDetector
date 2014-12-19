@@ -112,14 +112,11 @@ for i = 2:frames
     % Read frame and update in GUI
     frame = read(handles.vid, i);
     h = get(handles.axes1, 'Children');
-    
-    axes(handles.axes1);
     set(h, 'CData', frame);
     
-    
-    
-    axes(handles.axes2);
+    % Process the frame
     filtered = processFrame(frame);
+    
     % Update time and frame in GUI
     set(handles.frame, 'String', ['Frame: ' num2str(i)]);
     set(handles.time, 'String', ['Time: ' num2str(floor(toc))]);
