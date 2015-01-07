@@ -1,0 +1,10 @@
+To do:
+- OCR 
+    - database van karakters
+    - correlatie vinden script schrijven
+    - nummerbord draaien zodat het recht staat
+beste resultaat in tabel, andere niet
+Rand van nummerbord weghalen
+-Poster maken
+-Taken voor volgende week bedenken
+- Uitleggen waarom rgb?

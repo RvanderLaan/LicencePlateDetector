@@ -56,9 +56,12 @@ function gui_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 % Initialize variables
-handles.vid = [];       % Video
+%handles.vid = [];       % Video
 handles.curFrame = 1;   % Current frame
 handles.playtime = 0;   % Total time since starting the video
+
+% Load template images of characters
+handles.charImgs = loadImages();
 
 % Hide axis
 axes(handles.axes1);
@@ -153,7 +156,7 @@ while get(handles.start,'Value') && handles.curFrame < frames
     set(h, 'CData', frame);
     
     % Process the frame
-    plate = processFrame(frame);
+    plate = processFrame(frame, handles.charImgs);
     if (~isempty(plate))
         % If it returns something, add a new row
         data = get(handles.table, 'Data');
@@ -163,7 +166,7 @@ while get(handles.start,'Value') && handles.curFrame < frames
     
     % Update time and frame no. in GUI
     set(handles.frame, 'String', ['Frame: ' num2str(i)]);
-    set(handles.time, 'String', ['Time: ' num2str(floor(handles.playtime + time))]);
+    set(handles.time, 'String', ['Time: ' num2str(floor(handles.playtime + time)) ' - avg. time: ' num2str(round(1000*(handles.playtime + time)/i))]);
     
     % Set timeline position
     pos = get(handles.timeline, 'Position');
@@ -171,11 +174,11 @@ while get(handles.start,'Value') && handles.curFrame < frames
     set(handles.timeline, 'Position', pos);
 
     % Pause if time between frames is lower than 1/framerate
-    while (handles.playtime + toc < handles.playtime + 1/rate) 
-    end;
+%     while (handles.playtime + toc < handles.playtime + 1/rate) 
+%     end;
     
     % Save the current state in the GUI structure
-    guidata(hObject, handles);
+%     guidata(hObject, handles);
 end;
 
 % When the video has stopped playing or is paused
@@ -225,3 +228,18 @@ function button_pause(hObject, handles)
 set(handles.start,'Value', false)
 set(handles.start, 'String', 'Start processing');
 guidata(hObject, handles);
+
+function res = loadImages(hObject, handles)
+characters = '0123456789BDFGHJKLNMPRSTVXYZ';
+
+imgs = java.util.LinkedList;
+
+filePath = mfilename('fullpath');
+dir = filePath(1:length(filePath)-3);
+
+for i=1:length(characters)
+    img = imread([dir 'Characters\' characters(i) '.png']);
+    img = img(:, :, 1) < 128;
+    imgs.add(img);
+end;
+res = imgs;

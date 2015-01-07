@@ -1,8 +1,43 @@
-function res = ocr_fast(characterImgs, img)
+function res = ocr_fast(img, charImgs)
+    
     % Label seperate objects (the characters)
     % For every object (max 6)
         % For every template character
             % Find correlation
-        % Chara
+        % The character corresponds to the highest correlation
     %
-res = '';
+
+% Label the image
+[L, num] = bwlabel(img);
+
+charIds = '';
+for i=1:num % For every object 
+    obj = L == i; % Get object
+    % Get the cropping parameters
+    [nonZeroRows, nonZeroColumns] = find(obj);
+    topRow = min(nonZeroRows(:))
+    bottomRow = max(nonZeroRows(:))
+    leftColumn = min(nonZeroColumns(:))
+    rightColumn = max(nonZeroColumns(:))
+    % Crop
+    obj = obj(topRow:bottomRow, leftColumn:rightColumn);
+
+    maxCorr = 0;
+    maxId = 0;
+    for j = 0:charImgs.length();    % For every character
+        char = charImgs.get(j);
+        char = imresize(char, [(rightColumn-leftColumn+1), (bottomRow-topRow+1)], 'nearest');
+        
+        corr = corr2(obj, char);
+        if corr > maxCorr
+            maxCorr = corr;
+            maxId = j;
+        end;
+    end;
+    charIds = [charIds maxId];
+end;
+res = charIds;
+
+% Scaling:
+% Find biggest  difference (width/height)
+% Scale the character to that 
