@@ -30,6 +30,8 @@ for i = 1:num
     maxSizeIdx = sortArIdx(i);
     bbox = round(bboxes(maxSizeIdx*4 - 3: maxSizeIdx*4));   % Get bbox of that object
     if bbox(3) > 2 * bbox(4) && bbox(3) < 5 * bbox(4)       % Check if proportions of plate
+        % Check for edges
+%         edges = edge(gpuArray(frameRed(bbox(2) + 1:bbox(2) + bbox(4) - 1, bbox(1) + 1:bbox(1) + bbox(3) - 1)));
         break;        % Then it's probably the license plate, so stop the loop
     end;
 end;

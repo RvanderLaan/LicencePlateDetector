@@ -6,5 +6,6 @@ To do:
 beste resultaat in tabel, andere niet
 Rand van nummerbord weghalen
 -Poster maken
+-streepjes in nummerbord vinden
 -Taken voor volgende week bedenken
 - Uitleggen waarom rgb?

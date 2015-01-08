@@ -170,7 +170,9 @@ while get(handles.start,'Value') && handles.curFrame < frames
                 data(end+1, :) = {plate i (time + handles.playtime)};
                 set(handles.table, 'Data', data);
             else
-                handles.curFrame = handles.curFrame + 8;
+                % If it finds the same result as the last one, don't add it
+                % and skip a few frames
+%                 handles.curFrame = handles.curFrame + 4;
             end;
         end;
     end;
