@@ -1,7 +1,6 @@
 % Process: Search yellow objects, crop the largest object out of the
 % original image and try to read characters
 function res = processFrame(frame, charImgs)
-startT = toc;
 
 frameRed = frame(:, :, 1);
 frameGreen = frame(:, :, 2);

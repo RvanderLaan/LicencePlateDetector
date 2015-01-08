@@ -26,14 +26,14 @@ for i=1:num % For every object
     obj = obj(topRow:bottomRow, leftColumn:rightColumn);
     
     % If the object wider than its height, it's probably a character
-    if size(obj, 1) > size(obj, 2)
+    if sum(obj(:)) > 16 && size(obj, 1) > size(obj, 2)
         % Find the max correlation with a character 
-        maxCorr = 0;
+        maxCorr = -99999;
         maxId = 0;
-        for j = 0:length(characters)-1;    % For every character
+        for j = 1:length(characters);    % For every character
             % Resize
-            char = charImgs.get(j);
-            char = imresize(char, [(bottomRow-topRow+1), (rightColumn-leftColumn+1)], 'nearest');
+            char = charImgs{j};
+            char = imresize(char, [(bottomRow-topRow+1), (rightColumn-leftColumn+1)]);
 
             corr = corr2(obj, char); % Find correlation
             if corr > maxCorr
@@ -42,7 +42,7 @@ for i=1:num % For every object
             end;
         end;
         % Return the recognized characters
-        charIds = [charIds characters(maxId+1)];
+        charIds = [charIds characters(maxId)];
     end;
 end;
 res = charIds;

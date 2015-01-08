@@ -160,8 +160,19 @@ while get(handles.start,'Value') && handles.curFrame < frames
     if (~isempty(plate))
         % If it returns something, add a new row
         data = get(handles.table, 'Data');
-        data(end+1, :) = {plate i (time + handles.playtime)};
-        set(handles.table, 'Data', data);
+        
+        if isempty(data)
+            data(end+1, :) = {plate i (time + handles.playtime)};
+            set(handles.table, 'Data', data);
+        else
+            prevEntry = data(end, :);
+            if ~strcmp(prevEntry{1}, plate)
+                data(end+1, :) = {plate i (time + handles.playtime)};
+                set(handles.table, 'Data', data);
+            else
+                handles.curFrame = handles.curFrame + 8;
+            end;
+        end;
     end;
     
     % Update time and frame no. in GUI
@@ -232,7 +243,7 @@ guidata(hObject, handles);
 function res = loadImages(hObject, handles)
 characters = '0123456789BDFGHJKLNMPRSTVXYZ';
 
-imgs = java.util.LinkedList;
+imgs = {};
 
 filePath = mfilename('fullpath');
 dir = filePath(1:length(filePath)-3);
@@ -240,6 +251,6 @@ dir = filePath(1:length(filePath)-3);
 for i=1:length(characters)
     img = imread([dir 'Characters\' characters(i) '.png']);
     img = img(:, :, 1) < 128;
-    imgs.add(img);
+    imgs{i} = img;
 end;
 res = imgs;
