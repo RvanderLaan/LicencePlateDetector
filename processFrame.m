@@ -50,7 +50,7 @@ end;
 plate = frameRed(bbox(2) + 1:bbox(2) + bbox(4) - 1, bbox(1) + 1:bbox(1) + bbox(3) - 1);
 
 % Create binary image by thresholding with a little lower than the mean value
-plate = plate ~= 0 & plate < mean(mean(plate)) * 0.9;
+plate = plate ~= 0 & plate < mean2(plate) * 0.9;
 
 res = '';
 % If the image isn't empty, try to read it

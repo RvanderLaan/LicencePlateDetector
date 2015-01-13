@@ -147,7 +147,7 @@ time = 0;
 while get(handles.start,'Value') && handles.curFrame < frames
     % Store when this cycle starts and set current frame
     time = toc;
-    handles.curFrame = handles.curFrame + 1;
+    handles.curFrame = handles.curFrame + 3;
     i = handles.curFrame;   % Shorter variable for the current frame
     
     % Read frame and update in GUI
@@ -243,7 +243,7 @@ set(handles.start, 'String', 'Start processing');
 guidata(hObject, handles);
 
 function res = loadImages(hObject, handles)
-characters = '0123456789BDFGHJKLNMPRSTVXYZ';
+characters = '0123456789BDFGHJKLMNPRSTVXYZ';
 
 imgs = {};
 
@@ -253,6 +253,6 @@ dir = filePath(1:length(filePath)-3);
 for i=1:length(characters)
     img = imread([dir 'Characters\' characters(i) '.png']);
     img = img(:, :, 1) < 128;
-    imgs{i} = img;
+    imgs{i} = (img);
 end;
 res = imgs;
