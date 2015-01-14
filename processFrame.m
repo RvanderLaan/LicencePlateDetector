@@ -49,8 +49,24 @@ end;
 % Get red channel of cropped image
 plate = frameRed(bbox(2) + 1:bbox(2) + bbox(4) - 1, bbox(1) + 1:bbox(1) + bbox(3) - 1);
 
+% plate = (frameRed(bbox(2) + 3:bbox(2) + bbox(4) - 3, bbox(1) + 3:bbox(1) + bbox(3) - 3));
+
+% If no bbox is found, return nothing
+if (isempty(plate))
+    res = '';
+    return;
+end;
+
+plate
+
+plate = imsharpen(plate, 'Radius', 5,'Amount', 3);
+
+
+
 % Create binary image by thresholding with a little lower than the mean value
-plate = plate ~= 0 & plate < mean2(plate) * 0.9;
+plate = plate < mean2(plate) * 0.5;
+
+
 
 res = '';
 % If the image isn't empty, try to read it

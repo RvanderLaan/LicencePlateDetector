@@ -19,10 +19,7 @@ function res = ocr_fast(img, charImgs)
     % Compare that height with the full image height and decide if it
     % should be rotated
     
-
-
-
-characters ='0123456789BDFGHJKLMNPRSTVXYZ';
+characters ='0123456789BDFGHJKLMNPRSTVXZ';
 similar =   'D Z  S8 B 80      NMRP5     '; % Characters which look similar
 
 res = ''; % For storing the recognized characters
@@ -59,10 +56,14 @@ for i=1:num % For every object
             end;
         end;
         % Return the recognized characters
-        res = [res characters(maxId)];
+        if maxId ~= 0
+            res = [res characters(maxId)];
+        else
+            res = [res '?'];
+        end;
         
     % If a small object is wider than its height, it could be a dash
-    elseif sum(obj(:)) > 5 && size(obj, 2) > 1 && size(obj, 2) < size(img, 2) / 6 && size(obj, 2) > size(obj, 1)
+    elseif sum(obj(:)) > 3 && size(obj, 2) > 1 && size(obj, 2) < size(img, 2) / 6 && size(obj, 2) > size(obj, 1)
         % If there could be a dash there in the string, add it
         if ~strcmp(res, '') && length(res) < 8 && res(length(res)) ~= '-'
             res = [res '-'];

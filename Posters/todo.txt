@@ -1,11 +1,6 @@
 To do:
-- OCR 
-    - database van karakters
-    - correlatie vinden script schrijven
-    - nummerbord draaien zodat het recht staat
-beste resultaat in tabel, andere niet
-Rand van nummerbord weghalen
--Poster maken
--streepjes in nummerbord vinden
--Taken voor volgende week bedenken
-- Uitleggen waarom rgb?
+1. Goed herkennen van letters en streepjes
+2. Nummerbord altijd vinden ( want niet alle frames worden verwerkt)
+3. Alleen het correcte nummerbord in de lijst zetten
+4. Randen van het nummerbord op een of andere manier er uit halen
+5. Rotatie corrigeren

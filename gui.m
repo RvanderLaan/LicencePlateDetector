@@ -144,10 +144,13 @@ rate = handles.vid.FrameRate;
 tic;
 time = 0;
 
+licenseCounter = {}; % Store how often a license plate is detected
+                     % Format: lC{1} = {'xx-xx-xx', 1}
+
 while get(handles.start,'Value') && handles.curFrame < frames
     % Store when this cycle starts and set current frame
     time = toc;
-    handles.curFrame = handles.curFrame + 3;
+    handles.curFrame = handles.curFrame + 7;
     i = handles.curFrame;   % Shorter variable for the current frame
     
     % Read frame and update in GUI
@@ -161,6 +164,19 @@ while get(handles.start,'Value') && handles.curFrame < frames
         % If it returns something, add a new row
         data = get(handles.table, 'Data');
         
+         % Check if it has already been found
+%         found = false;
+%         maxDiff = 0; % Find the maximum difference for every string
+%         for i = 1:size(licenseCounter, 2)
+%             diff = 
+%             if strcmp(plate, licenseCounter{i}(1))
+%                 found = true;
+%                 licenseCounter{i}(2) = licenseCounter{i}(2) + 1;
+%                 break;
+%             end;
+%         end;
+        
+        % Add everything that is recognized
         if isempty(data)
             data(end+1, :) = {plate i (time + handles.playtime)};
             set(handles.table, 'Data', data);
@@ -172,7 +188,7 @@ while get(handles.start,'Value') && handles.curFrame < frames
             else
                 % If it finds the same result as the last one, don't add it
                 % and skip a few frames
-%                 handles.curFrame = handles.curFrame + 4;
+                handles.curFrame = handles.curFrame + 1;
             end;
         end;
     end;
@@ -243,7 +259,7 @@ set(handles.start, 'String', 'Start processing');
 guidata(hObject, handles);
 
 function res = loadImages(hObject, handles)
-characters = '0123456789BDFGHJKLMNPRSTVXYZ';
+characters = '0123456789BDFGHJKLMNPRSTVXZ';
 
 imgs = {};
 
