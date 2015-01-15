@@ -139,10 +139,12 @@ axes(handles.axes1);
 % Get the number of frames and the rate
 frames = handles.vid.numberOfFrames;
 rate = handles.vid.FrameRate;
+fps = 3;
 
 % Start the counter time in ms (to play at specified frames per second)
 tic;
 time = 0;
+avgTime = 1000/rate;
 
 % Store how often a license plate is detected
 % Format: licenseCounter{1} = {'xx-xx-xx', frame, time, count}
@@ -151,7 +153,15 @@ licenseCounter = {};
 while get(handles.start,'Value') && handles.curFrame < frames
     % Store when this cycle starts and set current frame
     time = toc;
-    handles.curFrame = handles.curFrame + 2;
+    if avgTime < 1.3 * 1000/rate
+        if fps > 1
+            fps = fps-1;
+        end;
+    elseif avgTime > 1.33 * 1000/rate
+        fps = fps + 1;
+    end;
+    
+    handles.curFrame = handles.curFrame + fps;
     cf = handles.curFrame;   % Shorter variable for the current frame
     
     % Read frame and update in GUI
@@ -178,7 +188,7 @@ while get(handles.start,'Value') && handles.curFrame < frames
                     % If there are >3 characters different, it's probably a new
                     % plate
                     diff = sum(licenseCounter{i}{1} ~= plate);
-                    if diff > 3
+                    if diff > 2
                         % Find the plate with the highest count
                         idx = 0;
                         maxCount= 0;
@@ -224,8 +234,9 @@ while get(handles.start,'Value') && handles.curFrame < frames
     
     
     % Update time and frame no. in GUI
+    avgTime = round(1000*(handles.playtime + time)/cf);
     set(handles.frame, 'String', ['Frame: ' num2str(cf)]);
-    set(handles.time, 'String', ['Time: ' num2str(floor(handles.playtime + time)) ' - avg. time: ' num2str(round(1000*(handles.playtime + time)/cf))]);
+    set(handles.time, 'String', ['Time: ' num2str(floor(handles.playtime + time)) ' - avg. time: ' num2str(avgTime)]);
     
     % Set timeline position
     pos = get(handles.timeline, 'Position');
@@ -241,6 +252,13 @@ end;
 if handles.curFrame == frames 
     % If it has finished playing
     stop(hObject, handles);
+    % Compare results:
+    solutionFile = [getProjectPath 'trainingSolutions.mat'];
+    
+    data = get(handles.table, 'Data');
+    
+    checkSolution(data, solutionFile);
+    
 else % If video is paused
     button_pause(hObject, handles);         % Set the button to pause state
     handles.playtime = handles.playtime + time; % Store the total playtime
@@ -290,8 +308,7 @@ characters = '0123456789BDFGHJKLMNPRSTVXZ';
 
 imgs = {};
 
-filePath = mfilename('fullpath');
-dir = filePath(1:length(filePath)-3);
+dir = getProjectPath();
 
 for i=1:length(characters)
     img = imread([dir 'Characters\' characters(i) '.png']);
@@ -299,3 +316,7 @@ for i=1:length(characters)
     imgs{i} = (img);
 end;
 res = imgs;
+
+function res = getProjectPath()
+filePath = mfilename('fullpath');
+res = filePath(1:length(filePath)-3);
