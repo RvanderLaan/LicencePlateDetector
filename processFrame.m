@@ -7,15 +7,15 @@ frameGreen = frame(:, :, 2);
 frameBlue = frame(:, :, 3);
 
 % Lines from graphs
-plate = frameRed < 1.33 * frameGreen + 50 & frameRed > frameGreen - 30 ...
-    & frameBlue < 2 * frameRed / 3 ...
-    & frameBlue < 2 * frameGreen / 3 + 10 ...
-    & frameGreen > 2 * frameRed / 3 ...
-    & (frameRed + frameGreen + frameBlue) > 60; % No dark colors
-
-% Close image
+plate = frameRed < 1.45 * frameGreen + 60 & frameRed > frameGreen - 30 ...
+    & frameRed > 3* frameBlue / 2  ... 
+    & frameGreen > 3 * frameBlue / 2 + 10 ...
+    &  frameRed + frameGreen > 2*frameBlue ...
+    & (frameRed + frameGreen + frameBlue) > 60;  % No dark colors
+    
 plate = imopen(plate, ones(5));
 plate = imclose(plate, ones(10));
+
 
 % Find index of largest object in labeled image
 [L, num] = bwlabel(plate);
@@ -43,7 +43,7 @@ if (isempty(bbox))
 end;
 
 % Show isolated plate with full image (in gray) with red rectangle
-% imshow(frameRed .* uint8(plate) + frameRed / 3);
+%imshow(frameRed .* uint8(plate) + frameRed / 3);
 % rectangle('Position', bbox, 'EdgeColor', 'red');
 
 % Get red channel of cropped image
@@ -57,7 +57,7 @@ if (isempty(plate))
     return;
 end;
 
-plate
+
 
 plate = imsharpen(plate, 'Radius', 5,'Amount', 3);
 
