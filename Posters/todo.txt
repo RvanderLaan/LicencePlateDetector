@@ -4,3 +4,5 @@ To do:
 3. Alleen het correcte nummerbord in de lijst zetten
 4. Randen van het nummerbord op een of andere manier er uit halen
 5. Rotatie corrigeren
+
+Voor het onderscheiden van letter/cijfer combinaties: Een letter zit nooit gegroepeerd bij een letter?

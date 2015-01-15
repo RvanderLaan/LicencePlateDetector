@@ -144,70 +144,97 @@ rate = handles.vid.FrameRate;
 tic;
 time = 0;
 
-licenseCounter = {}; % Store how often a license plate is detected
-                     % Format: lC{1} = {'xx-xx-xx', 1}
+% Store how often a license plate is detected
+% Format: licenseCounter{1} = {'xx-xx-xx', frame, time, count}
+licenseCounter = {};
 
 while get(handles.start,'Value') && handles.curFrame < frames
     % Store when this cycle starts and set current frame
     time = toc;
-    handles.curFrame = handles.curFrame + 7;
-    i = handles.curFrame;   % Shorter variable for the current frame
+    handles.curFrame = handles.curFrame + 2;
+    cf = handles.curFrame;   % Shorter variable for the current frame
     
     % Read frame and update in GUI
-    frame = read(handles.vid, i);
+    frame = read(handles.vid, cf);
     h = get(handles.axes1, 'Children');
     set(h, 'CData', frame);
     
     % Process the frame
     plate = processFrame(frame, handles.charImgs);
-    if (~isempty(plate))
-        % If it returns something, add a new row
-        data = get(handles.table, 'Data');
+    
+    % Adding stuff to the list
+    if length(plate) == 8 % Only if it has the correct amount of characters
+        % if nothing has been added yet, simply add it to counter list
+        if size(licenseCounter, 2) == 0
+            licenseCounter{1} = {plate, cf, (time + handles.playtime), 1};
+        else
+            % Check if it has already been found
+            for i = 1:size(licenseCounter, 2)
+                % If it is found, increment the counter
+                if strcmp(plate, licenseCounter{i}(1))
+                    licenseCounter{i}{4} = licenseCounter{i}{4} + 1;
+                    break;
+                else
+                    % If there are >3 characters different, it's probably a new
+                    % plate
+                    diff = sum(licenseCounter{i}{1} ~= plate);
+                    if diff > 3
+                        % Find the plate with the highest count
+                        idx = 0;
+                        maxCount= 0;
+                        for j = 1:size(licenseCounter, 2)
+                            if licenseCounter{j}{4} > maxCount
+                                maxCount = licenseCounter{j}{4};
+                                idx = j;
+                            end;
+                        end;
+                        % Add to GUI
+                        data = get(handles.table, 'Data');
+                        data(end+1, :) = {licenseCounter{idx}{1} licenseCounter{idx}{2} licenseCounter{idx}{3}};
+                        set(handles.table, 'Data', data);
+                        
+                        % Reset counter list
+                        licenseCounter = {};
+                        licenseCounter{1} = {plate, cf, (time + handles.playtime), 1};
+                        break;
+                    end;
+                end;
+            end;
+        end;       
         
-         % Check if it has already been found
-%         found = false;
-%         maxDiff = 0; % Find the maximum difference for every string
-%         for i = 1:size(licenseCounter, 2)
-%             diff = 
-%             if strcmp(plate, licenseCounter{i}(1))
-%                 found = true;
-%                 licenseCounter{i}(2) = licenseCounter{i}(2) + 1;
-%                 break;
+        % --- Add everything
+%          % If it returns something, add a new row
+%         data = get(handles.table, 'Data');
+%         % Add everything that is recognized
+%         if isempty(data)
+%             data(end+1, :) = {plate i (time + handles.playtime)};
+%             set(handles.table, 'Data', data);
+%         else
+%             prevEntry = data(end, :);
+%             if ~strcmp(prevEntry{1}, plate)
+%                 data(end+1, :) = {plate i (time + handles.playtime)};
+%                 set(handles.table, 'Data', data);
+%             else
+%                 % If it finds the same result as the last one, don't add it
+%                 % and skip a few frames
+%                 handles.curFrame = handles.curFrame + 1;
 %             end;
 %         end;
-        
-        % Add everything that is recognized
-        if isempty(data)
-            data(end+1, :) = {plate i (time + handles.playtime)};
-            set(handles.table, 'Data', data);
-        else
-            prevEntry = data(end, :);
-            if ~strcmp(prevEntry{1}, plate)
-                data(end+1, :) = {plate i (time + handles.playtime)};
-                set(handles.table, 'Data', data);
-            else
-                % If it finds the same result as the last one, don't add it
-                % and skip a few frames
-                handles.curFrame = handles.curFrame + 1;
-            end;
-        end;
     end;
     
+    
     % Update time and frame no. in GUI
-    set(handles.frame, 'String', ['Frame: ' num2str(i)]);
-    set(handles.time, 'String', ['Time: ' num2str(floor(handles.playtime + time)) ' - avg. time: ' num2str(round(1000*(handles.playtime + time)/i))]);
+    set(handles.frame, 'String', ['Frame: ' num2str(cf)]);
+    set(handles.time, 'String', ['Time: ' num2str(floor(handles.playtime + time)) ' - avg. time: ' num2str(round(1000*(handles.playtime + time)/cf))]);
     
     % Set timeline position
     pos = get(handles.timeline, 'Position');
-    pos(1) = -pos(3) + pos(3) * (i/frames);
+    pos(1) = -pos(3) + pos(3) * (cf/frames);
     set(handles.timeline, 'Position', pos);
 
     % Pause if time between frames is lower than 1/framerate
 %     while (handles.playtime + toc < handles.playtime + 1/rate) 
 %     end;
-    
-    % Save the current state in the GUI structure
-%     guidata(hObject, handles);
 end;
 
 % When the video has stopped playing or is paused
