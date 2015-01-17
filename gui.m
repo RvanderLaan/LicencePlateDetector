@@ -160,7 +160,7 @@ while get(handles.start,'Value') && handles.curFrame < frames
     elseif avgTime > 1.33 * 1000/rate
         fps = fps + 1;
     end;
-    
+
     handles.curFrame = handles.curFrame + fps;
     cf = handles.curFrame;   % Shorter variable for the current frame
     
@@ -176,19 +176,23 @@ while get(handles.start,'Value') && handles.curFrame < frames
     if length(plate) == 8 % Only if it has the correct amount of characters
         % if nothing has been added yet, simply add it to counter list
         if size(licenseCounter, 2) == 0
+            licenseCounter = {};
             licenseCounter{1} = {plate, cf, (time + handles.playtime), 1};
         else
             % Check if it has already been found
+            found = false;
             for i = 1:size(licenseCounter, 2)
                 % If it is found, increment the counter
-                if strcmp(plate, licenseCounter{i}(1))
+                if strcmp(plate, licenseCounter{i}{1})
                     licenseCounter{i}{4} = licenseCounter{i}{4} + 1;
+                    found = true;
                     break;
                 else
                     % If there are >3 characters different, it's probably a new
                     % plate
                     diff = sum(licenseCounter{i}{1} ~= plate);
-                    if diff > 2
+                    if diff > 3
+                        found = true;
                         % Find the plate with the highest count
                         idx = 0;
                         maxCount= 0;
@@ -210,33 +214,18 @@ while get(handles.start,'Value') && handles.curFrame < frames
                     end;
                 end;
             end;
+            if ~found
+                % If it's not in the list, add it
+                licenseCounter{end+1} = {plate, cf, (time + handles.playtime), 1};
+            end;
         end;       
-        
-        % --- Add everything
-%          % If it returns something, add a new row
-%         data = get(handles.table, 'Data');
-%         % Add everything that is recognized
-%         if isempty(data)
-%             data(end+1, :) = {plate i (time + handles.playtime)};
-%             set(handles.table, 'Data', data);
-%         else
-%             prevEntry = data(end, :);
-%             if ~strcmp(prevEntry{1}, plate)
-%                 data(end+1, :) = {plate i (time + handles.playtime)};
-%                 set(handles.table, 'Data', data);
-%             else
-%                 % If it finds the same result as the last one, don't add it
-%                 % and skip a few frames
-%                 handles.curFrame = handles.curFrame + 1;
-%             end;
-%         end;
     end;
     
     
     % Update time and frame no. in GUI
     avgTime = round(1000*(handles.playtime + time)/cf);
     set(handles.frame, 'String', ['Frame: ' num2str(cf)]);
-    set(handles.time, 'String', ['Time: ' num2str(floor(handles.playtime + time)) ' - avg. time: ' num2str(avgTime)]);
+    set(handles.time, 'String', ['Time: ' num2str(floor(handles.playtime + time)) ' - avg. time: ' num2str(avgTime) ' (ms)']);
     
     % Set timeline position
     pos = get(handles.timeline, 'Position');
@@ -249,7 +238,7 @@ while get(handles.start,'Value') && handles.curFrame < frames
 end;
 
 % When the video has stopped playing or is paused
-if handles.curFrame == frames 
+if handles.curFrame >= frames 
     % If it has finished playing
     stop(hObject, handles);
     % Compare results:

@@ -19,8 +19,7 @@ function res = ocr_fast(img, charImgs)
     % Compare that height with the full image height and decide if it
     % should be rotated
     
-characters ='0123456789BDFGHJKLMNPRSTVXZ';
-similar =   'D Z  S8 B 80      NMRP5     '; % Characters which look similar
+characters = '0123456789BDFGHJKLMNPRSTVXZ';
 
 res = ''; % For storing the recognized characters
 
@@ -31,6 +30,9 @@ res = ''; % For storing the recognized characters
 stats = regionprops(L, 'BoundingBox');
 bboxes = [stats.BoundingBox];
 
+% For storing the bboxes of the characters only, used to find the dashes
+charBboxes = {};   
+
 for i=1:num % For every object 
     obj = L == i; % Get object
 
@@ -40,6 +42,9 @@ for i=1:num % For every object
 
     % If the object wider than its height and at least 1/3 as high as the image, it's probably a character
     if sum(obj(:)) > 8 && size(obj, 1) > size(img, 1)/3 && size(obj, 1) > size(obj, 2)
+        % Add the bbox to charBboxes
+        charBboxes{length(charBboxes)+1} = bbox;
+        
         % Find the max correlation for a character 
         maxCorr = -1;
         maxId = 0;
@@ -55,18 +60,47 @@ for i=1:num % For every object
                 maxId = j;
             end;
         end;
+        
         % Return the recognized characters
         if maxId ~= 0
-            res = [res characters(maxId)];
-        else
-            res = [res '?'];
-        end;
-        
-    % If a small object is wider than its height, it could be a dash
-    elseif sum(obj(:)) > 3 && size(obj, 2) > 1 && size(obj, 2) < size(img, 2) / 6 && size(obj, 2) > size(obj, 1)
-        % If there could be a dash there in the string, add it
-        if ~strcmp(res, '') && length(res) < 8 && res(length(res)) ~= '-'
-            res = [res '-'];
+            char = characters(maxId);
+            res = [res char];
         end;
     end;
+end;
+
+if length(charBboxes) == 6
+    % Find where the dashes are with the bboxes of the characters
+    % Find the two largest horizontal gaps between characters 
+    distances = [];
+    for i=1:(length(charBboxes)-1)
+        bbox = charBboxes{i};
+        bbox2 = charBboxes{i+1};
+
+        leftX = bbox(1) + bbox(3);
+        rightX = bbox2(1);
+        distances(i) = rightX - leftX;
+    end;
+    
+    [d, idx] = sort(distances, 'Descend');
+    
+    % Sort first and second highest indeces, else you get something like
+    % '63HK--HKHD'
+    if idx(1) > idx(2)
+        temp = idx(1);
+        idx(1) = idx(2);
+        idx(2) = temp;
+    end;
+    
+    % Return nothing if layout is wrong
+    if idx(2) - idx(1) < 2 || (idx(1) == 1 && idx(2) == 5)
+        res = '';
+        return;
+    end;
+
+    % Put through the stringToLicensePlate function to make use of
+    % sidecodes
+    res = sidecodeFinder({[res(1:idx(1))] [res(idx(1)+1:idx(2))] [res(idx(2)+1:end)]});
+else
+    res = '';
 end;
