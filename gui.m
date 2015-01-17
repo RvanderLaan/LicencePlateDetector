@@ -189,9 +189,11 @@ while get(handles.start,'Value') && handles.curFrame < frames
                     break;
                 else
                     % If there are >3 characters different, it's probably a new
-                    % plate
+                    % plate. 
+                    % And there have to be at least 20 frames since in
+                    % between
                     diff = sum(licenseCounter{i}{1} ~= plate);
-                    if diff > 3
+                    if diff > 3 
                         found = true;
                         % Find the plate with the highest count
                         idx = 0;
@@ -231,21 +233,16 @@ while get(handles.start,'Value') && handles.curFrame < frames
     pos = get(handles.timeline, 'Position');
     pos(1) = -pos(3) + pos(3) * (cf/frames);
     set(handles.timeline, 'Position', pos);
-
-    % Pause if time between frames is lower than 1/framerate
-%     while (handles.playtime + toc < handles.playtime + 1/rate) 
-%     end;
 end;
 
 % When the video has stopped playing or is paused
 if handles.curFrame >= frames 
     % If it has finished playing
     stop(hObject, handles);
+    
     % Compare results:
     solutionFile = [getProjectPath 'trainingSolutions.mat'];
-    
     data = get(handles.table, 'Data');
-    
     checkSolution(data, solutionFile);
     
 else % If video is paused
@@ -260,6 +257,8 @@ function reset_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 stop(hObject, handles);
+set(handles.table, 'Data', {});
+guidata(hObject, handles);
 
 % --- Sets the play/pause button to the paused state and resets gui & variables
 function stop(hObject, handles)

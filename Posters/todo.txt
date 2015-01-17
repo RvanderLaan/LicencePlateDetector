@@ -1,8 +1,20 @@
-To do:
-1. Goed herkennen van letters en streepjes
-2. Nummerbord altijd vinden ( want niet alle frames worden verwerkt)
-3. Alleen het correcte nummerbord in de lijst zetten
-4. Randen van het nummerbord op een of andere manier er uit halen
-5. Rotatie corrigeren
+To do Week 3:
+1. V    Goed herkennen van letters en streepjes 
+2. X    Nummerbord altijd vinden ( want niet alle frames worden verwerkt)
+3. V    Alleen het correcte nummerbord in de lijst zetten
+4. X    Randen van het nummerbord op een of andere manier er uit halen
+5. X    Rotatie corrigeren
 
 Voor het onderscheiden van letter/cijfer combinaties: Een letter zit nooit gegroepeerd bij een letter?
+
+To do Week 4:
+1.      Rotatie corrigeren
+2.      Nummerbord altijd vinden (gele auto, bruinig nummerbord)
+3.      Veel testen
+
+  Sidecodes herkennen verbeteren (7 tm 9) met trusted dingen
+  Laatste nummerbord in loop ook in de GUI zetten
+V Onzin nummerborden niet toevoegen (met letters en cijfers bij elkaar)
+  Zorgen dat er minstens ~20 frames moet zitten tussen het toevoegen,
+    nu worden er soms een aantal foute achter elkaar er in gezet
+  

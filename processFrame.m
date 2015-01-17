@@ -29,8 +29,6 @@ for i = 1:num
     maxSizeIdx = sortArIdx(i);
     bbox = round(bboxes(maxSizeIdx*4 - 3: maxSizeIdx*4));   % Get bbox of that object
     if bbox(3) > 2 * bbox(4) && bbox(3) < 5 * bbox(4)       % Check if proportions of plate
-        % Check for edges
-%         edges = edge(gpuArray(frameRed(bbox(2) + 1:bbox(2) + bbox(4) - 1, bbox(1) + 1:bbox(1) + bbox(3) - 1)));
         break;        % Then it's probably the license plate, so stop the loop
     end;
 end;
@@ -46,9 +44,7 @@ end;
 % rectangle('Position', bbox, 'EdgeColor', 'red');
 
 % Get red channel of cropped image
-plate = frameRed(bbox(2) + 1:bbox(2) + bbox(4) - 1, bbox(1) + 1:bbox(1) + bbox(3) - 1);
-
-% plate = (frameRed(bbox(2) + 3:bbox(2) + bbox(4) - 3, bbox(1) + 3:bbox(1) + bbox(3) - 3));
+plate = frameRed(bbox(2) + 1:bbox(2) + bbox(4) - 1, bbox(1) + 1:bbox(1) + bbox(3) - 3);
 
 % If no bbox is found, return nothing
 if (isempty(plate))
@@ -59,8 +55,9 @@ end;
 plate = imsharpen(plate, 'Radius', 5,'Amount', 3);
 
 % Create binary image by thresholding with a little lower than the mean value
-plate = plate < mean2(plate) * 0.5;
+plate = plate < mean2(plate) * 0.8;
 
+% plate = imclose(plate, ones(2, 2));
 % imshow(plate);
 
 res = '';

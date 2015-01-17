@@ -1,23 +1,26 @@
 function res = ocr_fast(img, charImgs)
     
+    % Summary:
     % Label seperate objects (the characters)
     % For every object 
         % For every template character
             % Find correlation
         % The character corresponds to the highest correlation
     
-    % Speeding up:
-    % Check if correlation with characters of previous license plate are
-    % high, then you won't have to loop over every char every time
-    % Cmobo with previuos point: Store which characters are similar and
-    % only check those
-    % Maybe something with GPU
-    % 
-    
+    % Improvements
+    %   Check if correlation with characters of previous license plate are
+    %   high, then you won't have to loop over every char every time
+    %   Store which characters are similar and check those first
+    %   Maybe something with GPU
     % Rotating:
-    % Compare the height of first and last character objects in image
-    % Compare that height with the full image height and decide if it
-    % should be rotated
+    %   Compare the height of first and last character objects in image
+    %   Compare that height with the full image height and decide if it
+    %   should be rotated
+    
+    % Corrections:
+    % R sometimes becomes F
+    % B sometimes becomes H
+    % N & M
     
 characters = '0123456789BDFGHJKLMNPRSTVXZ';
 
@@ -41,7 +44,7 @@ for i=1:num % For every object
     obj = obj(bbox(2):bbox(2) + bbox(4) - 1, bbox(1):bbox(1) + bbox(3) - 1);
 
     % If the object wider than its height and at least 1/3 as high as the image, it's probably a character
-    if sum(obj(:)) > 8 && size(obj, 1) > size(img, 1)/3 && size(obj, 1) > size(obj, 2)
+    if sum(obj(:)) > 8 && size(obj, 1) > size(img, 1)/3 && size(obj, 1) > size(obj, 2) && bbox(2) + bbox(4) > size(obj, 1)/2
         % Add the bbox to charBboxes
         charBboxes{length(charBboxes)+1} = bbox;
         
@@ -82,7 +85,7 @@ if length(charBboxes) == 6
         distances(i) = rightX - leftX;
     end;
     
-    [d, idx] = sort(distances, 'Descend');
+    [~, idx] = sort(distances, 'Descend');
     
     % Sort first and second highest indeces, else you get something like
     % '63HK--HKHD'

@@ -12,12 +12,16 @@ sidecodes = { % True = numeric
     false true false;  % Sidecode 9, idx 6
 };
 
-similar = {'DTZSB' '01258'};
-trustedNumbers = '34679'; % Numbers which don't look like characters
-trustedChars = 'FGHJKLMNPRVX'; % Characters which don't look like numbers
+similar = {'DTZSB' '01258'};    % Similar looking digits and characters
+tNum = '34679';                 % Numbers which don't look like characters
+tChar = 'FGHJKLMNPRVX';         % Characters which don't look like numbers
+allNum = '0123456789';          % All numbers
 
 
-% Identify sidecode
+% Identify sidecode:
+% First look for 2 trusted alphabetic characters in any part
+% Or for at least one trusted digit in any part
+% Or for 2 different digits of any kind in the same part
 sc = 0;
 if length(plate{3}) == 1
     if isstrprop(plate{3}, 'digit') % If it's a digit
@@ -30,21 +34,16 @@ elseif length(plate{1}) == 1
     
     % If there is a trusted number in 1 part or two trusted characters in 2 parts,
     % choose that sidecode
-elseif ~isempty(strfind(trustedNumbers, plate{2}(1))) || ~isempty(strfind(trustedNumbers, plate{2}(2))) || ...
-       ((~isempty(strfind(trustedChars, plate{1}(1))) || ~isempty(strfind(trustedChars, plate{1}(2)))) && ...
-       (~isempty(strfind(trustedChars, plate{3}(1))) || ~isempty(strfind(trustedChars, plate{3}(2)))))
+elseif (isTrusted(tChar, plate, 1, 1, 1, 2, 'or') && isTrusted(tChar, plate, 3, 1, 3, 2, 'or')) || ... 
+        isTrusted(tNum, plate, 2, 1, 2, 2, 'or') || isTrusted(allNum, plate, 2, 1, 2, 2, 'and')
     sc = 1; % idx 1         % Sidecode 4
-elseif ~isempty(strfind(trustedNumbers, plate{3}(1))) || ~isempty(strfind(trustedNumbers, plate{3}(2))) || ...
-       ((~isempty(strfind(trustedChars, plate{1}(1))) || ~isempty(strfind(trustedChars, plate{1}(2)))) && ...
-       (~isempty(strfind(trustedChars, plate{2}(1))) || ~isempty(strfind(trustedChars, plate{2}(2)))))
+elseif (isTrusted(tChar, plate, 1, 1, 1, 2, 'or') && isTrusted(tChar, plate, 2, 1, 2, 2, 'or')) || ...
+        isTrusted(tNum, plate, 3, 1, 3, 2, 'or') || isTrusted(allNum, plate, 3, 1, 3, 2, 'and')
     sc = 2; % idx 2         % Sidecode 5
-elseif ~isempty(strfind(trustedNumbers, plate{1}(1))) || ~isempty(strfind(trustedNumbers, plate{1}(2))) || ...
-       ((~isempty(strfind(trustedChars, plate{2}(1))) || ~isempty(strfind(trustedChars, plate{2}(2)))) && ...
-       (~isempty(strfind(trustedChars, plate{3}(1))) || ~isempty(strfind(trustedChars, plate{3}(2)))))
+elseif (isTrusted(tChar, plate, 2, 1, 2, 2, 'or') && isTrusted(tChar, plate, 3, 1, 3, 2, 'or'))  || ... 
+        isTrusted(tNum, plate, 1, 1, 1, 2, 'or') || isTrusted(allNum, plate, 1, 1, 1, 2, 'and')
     sc = 3; % idx 3         % Sidecode 6
 end;
-
-print = [sc plate];
 
 % If it does not fit in any sidecode, return nothing
 if sc == 0
@@ -57,12 +56,28 @@ for i=1:3 % For every part of the plate
     isnum = sidecodes{sc, i}(1); % 1 = numeric, 0 = alphabetic
     for j=1:length(plate{i}) % For every character of that part
         idx = strfind(similar{abs(isnum-2)}, plate{i}(j)); % Is empty if not found
-        if ~isempty(idx) % if a character is found, set it to a number
+        if ~isempty(idx) % If a similar looking character is found
             plate{i}(j) = similar{isnum+1}(idx); % Switch the similar character
+        elseif isnum ~= isstrprop(plate{i}(j), 'digit')
+            res = ''; % If it can't be converted, there will be a number
+            return;   % and alphabetic character, which is always wrong
         end;
     end;
 end;
 
-[print plate];
-
 res = [plate{1} '-' plate{2} '-' plate{3}];
+
+% Returns if two characters are part of a template string, depending on the
+% option ('and'/'or')
+function res = isTrusted(template, plate, i11, i12, i21, i22, option)
+res = 0;
+if strcmp(option, 'or')
+    res = (~isempty(strfind(template, plate{i11}(i12))) || ~isempty(strfind(template, plate{i21}(i22))));
+elseif strcmp(option, 'and')
+    if plate{i11}(i12) ==  plate{i21}(i22) % can't be the same, should be removed if used for other purposes
+        res = false;
+        return;
+    end;
+    res = (~isempty(strfind(template, plate{i11}(i12))) && ~isempty(strfind(template, plate{i21}(i22))));
+end;
+        
