@@ -34,8 +34,10 @@ stats = regionprops(L, 'BoundingBox');
 bboxes = [stats.BoundingBox];
 
 % For storing the bboxes of the characters only, used to find the dashes
-charBboxes = {};   
+charBboxes = {};
+charObjs = {};
 
+% Find which objects are the characters
 for i=1:num % For every object 
     obj = L == i; % Get object
 
@@ -43,32 +45,74 @@ for i=1:num % For every object
     bbox = round(bboxes(i*4 - 3: i*4));
     obj = obj(bbox(2):bbox(2) + bbox(4) - 1, bbox(1):bbox(1) + bbox(3) - 1);
 
-    % If the object wider than its height and at least 1/3 as high as the image, it's probably a character
-    if sum(obj(:)) > 8 && size(obj, 1) > size(img, 1)/3 && size(obj, 1) > size(obj, 2) && bbox(2) + bbox(4) > size(obj, 1)/2
+    % If the character is not too wide or long
+    if size(obj, 1) > size(img, 1)/5 && size(obj, 2) < size(img, 1)*1.8 && bbox(1) ~= 1 && bbox(2) + bbox(4) ~= size(obj, 1) && bbox(4) > 8 && bbox(3) > 4
         % Add the bbox to charBboxes
-        charBboxes{length(charBboxes)+1} = bbox;
+        charBboxes{end+1} = bbox;
+        charObjs{end+1} = obj;
+    end;
+end;
+
+if length(charBboxes) < 6
+    res = '';
+    return;
+end;
+
+% Rotate if necessary
+heightDiff = charBboxes{end}(2) - charBboxes{1}(2);
+widthDiff = charBboxes{end}(1) - charBboxes{1}(1);
+angle = atand(heightDiff / double(widthDiff));
+
+% Convert the characters to text
+for i=1:length(charBboxes)
+    bbox = charBboxes{i};
+    obj = charObjs{i};
+    
+    if abs(angle) > 3
+        obj = imrotate(obj, angle);
         
-        % Find the max correlation for a character 
-        maxCorr = -1;
-        maxId = 0;
-        for j = 1:length(characters);    % For every character
-            % Resize
-            char = charImgs{j};
-            char = imresize(char, [bbox(4), bbox(3)]);
-            
-            corr = corr2(obj, char); % Find correlation
-            
-            if corr > maxCorr
-                maxCorr = corr;
-                maxId = j;
+        [nonZeroRows nonZeroColumns] = find(obj);
+        
+        topRow = min(nonZeroRows(:));
+        bottomRow = max(nonZeroRows(:));
+        leftColumn = min(nonZeroColumns(:));
+        rightColumn = max(nonZeroColumns(:));
+        % Extract a cropped image from the original.
+        obj = obj(topRow:bottomRow, leftColumn:rightColumn);
+    end;
+    
+    % Find the max correlation for a character 
+    maxCorr = -1;
+    maxId = 0;
+    for j = 1:length(characters);    % For every character
+        % Resize
+        char = charImgs{j};
+        char = imresize(char, size(obj));
+
+        corr = corr2(obj, char); % Find correlation
+
+        if corr > maxCorr
+            maxCorr = corr;
+            maxId = j;
+        end;
+    end;
+
+    % Return the recognized characters
+    if maxId ~= 0
+        char = characters(maxId);
+        
+        if char == 'H' || char == 'B' || char == '8'
+            % Check correlation at top and bottom
+            eq = imresize(charImgs{end}, size(obj));
+            corr = corr2(obj, eq);
+            if corr > 0
+                char = 'B';
+            else
+                char = 'H';
             end;
         end;
         
-        % Return the recognized characters
-        if maxId ~= 0
-            char = characters(maxId);
-            res = [res char];
-        end;
+        res = [res char];
     end;
 end;
 
@@ -103,7 +147,7 @@ if length(charBboxes) == 6
 
     % Put through the stringToLicensePlate function to make use of
     % sidecodes
-    res = sidecodeFinder({[res(1:idx(1))] [res(idx(1)+1:idx(2))] [res(idx(2)+1:end)]});
+    res = sidecodeFinder({res(1:idx(1)) res(idx(1)+1:idx(2)) res(idx(2)+1:end)});
 else
     res = '';
 end;

@@ -13,8 +13,8 @@ plate = frameRed < 1.45 * frameGreen + 60 & frameRed > frameGreen - 40 ...
     & frameRed + frameGreen > 2*frameBlue ...
     & (frameRed + frameGreen + frameBlue) > 60;  % No dark colors
 
-plate = imopen(plate, ones(5));
-plate = imclose(plate, ones(10));
+plate = imopen(plate, ones(3));
+plate = imclose(plate, ones(5));
 
 % Find index of largest object in labeled image
 [L, num] = bwlabel(plate);
@@ -39,6 +39,7 @@ if (isempty(bbox))
     return;
 end;
 
+
 % Show isolated plate with full image (in gray) with red rectangle
 % imshow(frameRed .* uint8(plate) + frameRed / 3);
 % rectangle('Position', bbox, 'EdgeColor', 'red');
@@ -47,7 +48,7 @@ end;
 plate = frameRed(bbox(2) + 1:bbox(2) + bbox(4) - 1, bbox(1) + 1:bbox(1) + bbox(3) - 3);
 
 % If no bbox is found, return nothing
-if (isempty(plate))
+if size(plate, 1) < 8 || size(plate, 2) < 8
     res = '';
     return;
 end;

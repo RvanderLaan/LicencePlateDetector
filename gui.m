@@ -150,15 +150,20 @@ avgTime = 1000/rate;
 % Format: licenseCounter{1} = {'xx-xx-xx', frame, time, count}
 licenseCounter = {};
 
+minDiff = 3;
+
 while get(handles.start,'Value') && handles.curFrame < frames
     % Store when this cycle starts and set current frame
     time = toc;
+    % Set the amount of frames to be skipped to reach 1.3 of the total time
     if avgTime < 1.3 * 1000/rate
         if fps > 1
             fps = fps-1;
         end;
-    elseif avgTime > 1.33 * 1000/rate
-        fps = fps + 1;
+    else
+        if fps < 5
+            fps = fps + 1;
+        end;
     end;
 
     handles.curFrame = handles.curFrame + fps;
@@ -188,26 +193,36 @@ while get(handles.start,'Value') && handles.curFrame < frames
                     found = true;
                     break;
                 else
-                    % If there are >3 characters different, it's probably a new
-                    % plate. 
-                    % And there have to be at least 20 frames since in
-                    % between
+                    % Calculate difference
                     diff = sum(licenseCounter{i}{1} ~= plate);
-                    if diff > 3 
+                    
+                    comparePlate = licenseCounter{i};
+                    
+                    % If one is added very soon (<16 frames) after the previous one,
+                    % temporarily increase the minimum difference
+                    if diff > minDiff && cf - comparePlate{2} < 16
+                        minDiff = 5;
+                    end;
+                    
+                    % If there are some characters different, it's probably
+                    % a new license plate
+                    if diff > minDiff   
                         found = true;
-                        % Find the plate with the highest count
-                        idx = 0;
-                        maxCount= 0;
-                        for j = 1:size(licenseCounter, 2)
-                            if licenseCounter{j}{4} > maxCount
-                                maxCount = licenseCounter{j}{4};
-                                idx = j;
-                            end;
-                        end;
-                        % Add to GUI
+                        minDiff = 3;
+                        
+                        % Find the plate with the highest count and add to GUI
+                        maxPlate = getMaxCountPlate(licenseCounter);
                         data = get(handles.table, 'Data');
-                        data(end+1, :) = {licenseCounter{idx}{1} licenseCounter{idx}{2} licenseCounter{idx}{3}};
-                        set(handles.table, 'Data', data);
+                        
+                        % If the previous entry is not the same as this
+                        % one, add it
+                        if size(data, 1) == 0
+                            data(end+1, :) = maxPlate;
+                            set(handles.table, 'Data', data);
+                        elseif ~strcmp(data{end, 1}, maxPlate{1})
+                            data(end+1, :) = maxPlate;
+                            set(handles.table, 'Data', data);
+                        end;
                         
                         % Reset counter list
                         licenseCounter = {};
@@ -222,7 +237,6 @@ while get(handles.start,'Value') && handles.curFrame < frames
             end;
         end;       
     end;
-    
     
     % Update time and frame no. in GUI
     avgTime = round(1000*(handles.playtime + time)/cf);
@@ -240,6 +254,11 @@ if handles.curFrame >= frames
     % If it has finished playing
     stop(hObject, handles);
     
+    % Find the final plate with the highest count and add to GUI
+    data = get(handles.table, 'Data');
+    data(end+1, :) = getMaxCountPlate(licenseCounter);
+    set(handles.table, 'Data', data);
+    
     % Compare results:
     solutionFile = [getProjectPath 'trainingSolutions.mat'];
     data = get(handles.table, 'Data');
@@ -247,9 +266,21 @@ if handles.curFrame >= frames
     
 else % If video is paused
     button_pause(hObject, handles);         % Set the button to pause state
-    handles.playtime = handles.playtime + time; % Store the total playtime
+    handles.playtime = handles.playtime + time; % Set the total playtime
     guidata(hObject, handles); % Store play time
 end;
+
+function res = getMaxCountPlate(licenseCounter)
+ % Find the plate with the highest count
+    idx = 0;
+    maxCount= 0;
+    for j = 1:size(licenseCounter, 2)
+        if licenseCounter{j}{4} > maxCount
+            maxCount = licenseCounter{j}{4};
+            idx = j;
+        end;
+    end;
+res = {licenseCounter{idx}{1} licenseCounter{idx}{2} licenseCounter{idx}{3}};
 
 % --- Executes on button press in reset.
 function reset_Callback(hObject, eventdata, handles)
@@ -292,7 +323,7 @@ set(handles.start, 'String', 'Start processing');
 guidata(hObject, handles);
 
 function res = loadImages(hObject, handles)
-characters = '0123456789BDFGHJKLMNPRSTVXZ';
+characters = '0123456789BDFGHJKLMNPRSTVXZ=';
 
 imgs = {};
 

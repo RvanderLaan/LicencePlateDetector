@@ -12,9 +12,9 @@ sidecodes = { % True = numeric
     false true false;  % Sidecode 9, idx 6
 };
 
-similar = {'DTZSB' '01258'};    % Similar looking digits and characters
-tNum = '34679';                 % Numbers which don't look like characters
-tChar = 'FGHJKLMNPRVX';         % Characters which don't look like numbers
+similar = {'DTSB' '0158'};    % Similar looking digits and characters
+tNum = '234679';                 % Numbers which don't look like characters
+tChar = 'FGHJKLMNPRVXZ';         % Characters which don't look like numbers
 allNum = '0123456789';          % All numbers
 
 
@@ -32,8 +32,6 @@ if length(plate{3}) == 1
 elseif length(plate{1}) == 1    
     sc = 5; % idx 5             % Sidecode 8
     
-    % If there is a trusted number in 1 part or two trusted characters in 2 parts,
-    % choose that sidecode
 elseif (isTrusted(tChar, plate, 1, 1, 1, 2, 'or') && isTrusted(tChar, plate, 3, 1, 3, 2, 'or')) || ... 
         isTrusted(tNum, plate, 2, 1, 2, 2, 'or') || isTrusted(allNum, plate, 2, 1, 2, 2, 'and')
     sc = 1; % idx 1         % Sidecode 4
